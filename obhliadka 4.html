@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Obhliadka" />
+<meta name="theme-color" content="#cc0000" />
+<title>Obhliadka vozidla — OMNIA Motors</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='36' fill='%23cc0000'/><text x='90' y='118' font-family='-apple-system,Helvetica,Arial' font-size='90' font-weight='700' text-anchor='middle' fill='white'>O</text></svg>" />
+<style>
+  :root {
+    --red: #cc0000;
+    --bg: #f5f5f7;
+    --card: #ffffff;
+    --text: #111111;
+    --muted: #6b6b6b;
+    --border: #e5e5e7;
+    --success: #34c759;
+    --danger: #ff3b30;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  body {
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    min-height: 100vh;
+  }
+  .header {
+    background: var(--red);
+    color: white;
+    padding: calc(env(safe-area-inset-top) + 14px) 20px 14px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    margin-top: calc(env(safe-area-inset-top) * -1);
+  }
+  .header-row { display: flex; align-items: center; gap: 10px; }
+  .header h1 { font-size: 17px; font-weight: 600; margin: 0; flex: 1; }
+  .header p { font-size: 12px; margin: 2px 0 0; opacity: 0.85; }
+  .logo {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: white; color: var(--red);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 18px;
+  }
+  .container { padding: 14px; padding-bottom: 140px; }
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+  }
+  .section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin: 0 0 12px;
+  }
+  label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    margin-top: 10px;
+  }
+  label:first-of-type, .section-title + label { margin-top: 0; }
+  input[type="text"], input[type="number"], input[type="email"], input[type="tel"], input[type="date"], select, textarea {
+    width: 100%;
+    padding: 11px 12px;
+    font-size: 16px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  select {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1.5l5 5 5-5' stroke='%236b6b6b' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+  textarea { resize: vertical; min-height: 60px; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--red); }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .upper { text-transform: uppercase; }
+  .photo-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .photo-btn {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px;
+    padding: 16px 8px;
+    border: 1.5px dashed var(--red);
+    border-radius: 10px;
+    background: #fef5f5;
+    color: var(--red);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+    line-height: 1.2;
+  }
+  .photo-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-top: 12px;
+  }
+  .photo-item {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .photo-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photo-del {
+    position: absolute; top: 4px; right: 4px;
+    width: 24px; height: 24px; padding: 0;
+    border: none; border-radius: 50%;
+    background: rgba(0,0,0,0.65);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 14px; font-weight: 600;
+  }
+  .actions {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    padding: 10px 14px calc(env(safe-area-inset-bottom) + 10px);
+    background: rgba(245,245,247,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 0.5px solid var(--border);
+    display: flex; flex-direction: column; gap: 8px;
+    z-index: 20;
+  }
+  .btn {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn svg { width: 20px; height: 20px; }
+  .btn-primary { background: var(--text); color: white; }
+  .btn-share { background: var(--success); color: white; }
+  .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .btn-secondary {
+    background: transparent; color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 10px;
+    font-size: 13px; font-weight: 500;
+  }
+  .status {
+    font-size: 12px; text-align: center;
+    color: var(--muted);
+    min-height: 14px;
+    margin: 0;
+  }
+  .status.err { color: var(--danger); }
+  .status.ok { color: var(--success); }
+  .count {
+    font-weight: 400; color: var(--muted);
+    text-transform: none; letter-spacing: 0;
+  }
+  details.help {
+    background: #fff8e6;
+    border: 1px solid #ffe28a;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    font-size: 13px;
+  }
+  details.help summary {
+    cursor: pointer; font-weight: 500;
+    color: #7a5500;
+    list-style: none;
+  }
+  details.help summary::-webkit-details-marker { display: none; }
+  details.help summary::after { content: " ⌄"; }
+  details[open].help summary::after { content: " ⌃"; }
+  details.help p { margin: 8px 0 0; color: #5a4000; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-row">
+    <div class="logo">O</div>
+    <div style="flex:1;">
+      <h1>Obhliadka vozidla</h1>
+      <p>OMNIA Motors · výkup</p>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+
+  <details class="help">
+    <summary>Ako pridať na plochu iPhonu</summary>
+    <p>V Safari klepni na <b>tlačidlo zdieľať</b> (štvorček so šípkou nahor) → <b>Add to Home Screen</b> / <b>Pridať na plochu</b>. Appka sa otvorí na celú obrazovku bez panelu Safari, ako natívna aplikácia.</p>
+  </details>
+
+  <!-- IDENTIFIKÁCIA -->
+  <div class="card">
+    <p class="section-title">Identifikácia vozidla</p>
+    <label>Značka</label>
+    <input id="f_znacka" type="text" placeholder="napr. Honda" autocomplete="off" />
+    <label>Model</label>
+    <input id="f_model" type="text" placeholder="napr. CR-V" autocomplete="off" />
+    <div class="row-2">
+      <div>
+        <label>Rok výroby</label>
+        <input id="f_rok" type="number" inputmode="numeric" placeholder="2020" />
+      </div>
+      <div>
+        <label>1. evidencia</label>
+        <input id="f_evid" type="date" />
+      </div>
+    </div>
+    <label>VIN</label>
+    <input id="f_vin" type="text" maxlength="17" class="upper" placeholder="17 znakov" autocomplete="off" autocapitalize="characters" />
+    <label>EČV (ŠPZ)</label>
+    <input id="f_ecv" type="text" class="upper" placeholder="BA123AB" autocomplete="off" autocapitalize="characters" />
+    <label>Farba</label>
+    <input id="f_farba" type="text" placeholder="napr. čierna metalíza" autocomplete="off" />
+  </div>
+
+  <!-- TECHNIKA -->
+  <div class="card">
+    <p class="section-title">Technika</p>
+    <label>Motor</label>
+    <input id="f_motor" type="text" placeholder="napr. 1.5 VTEC Turbo, 130 kW" autocomplete="off" />
+    <label>Nájazd (km)</label>
+    <input id="f_km" type="number" inputmode="numeric" placeholder="napr. 85000" />
+    <div class="row-2">
+      <div>
+        <label>Palivo</label>
+        <select id="f_palivo">
+          <option value="">—</option>
+          <option>Benzín</option>
+          <option>Diesel</option>
+          <option>Hybrid</option>
+          <option>Plug-in hybrid</option>
+          <option>Elektro</option>
+          <option>LPG</option>
+          <option>CNG</option>
+        </select>
+      </div>
+      <div>
+        <label>Prevodovka</label>
+        <select id="f_prevod">
+          <option value="">—</option>
+          <option>Manuál</option>
+          <option>Automat</option>
+          <option>CVT</option>
+          <option>DCT/DSG</option>
+        </select>
+      </div>
+    </div>
+    <label>Pohon</label>
+    <select id="f_pohon">
+      <option value="">—</option>
+      <option>FWD (predný)</option>
+      <option>RWD (zadný)</option>
+      <option>AWD (4x4)</option>
+    </select>
+  </div>
+
+  <!-- STAV A HISTÓRIA -->
+  <div class="card">
+    <p class="section-title">Stav a história</p>
+    <label>Servisná história</label>
+    <textarea id="f_servis" rows="2" placeholder="kompletná v ASO / čiastočná / chýba — detaily"></textarea>
+    <label>Poistné udalosti</label>
+    <textarea id="f_poist" rows="2" placeholder="bez záznamu / popis udalostí"></textarea>
+    <label>Bourané / havarované</label>
+    <select id="f_bourane">
+      <option value="">—</option>
+      <option>Nie</option>
+      <option>Áno – ľahké poškodenie</option>
+      <option>Áno – stredné poškodenie</option>
+      <option>Áno – ťažké poškodenie</option>
+    </select>
+    <label>Stav karosérie (škrabance, vmtliny)</label>
+    <textarea id="f_karoseria" rows="2" placeholder="popis viditeľných poškodení"></textarea>
+  </div>
+
+  <!-- PNEUMATIKY -->
+  <div class="card">
+    <p class="section-title">Pneumatiky</p>
+    <label>Aktuálne nasadené</label>
+    <select id="f_pneu">
+      <option value="">—</option>
+      <option>Letné</option>
+      <option>Zimné</option>
+      <option>Celoročné</option>
+    </select>
+    <label>Druhá sada / kompletné kolesá</label>
+    <select id="f_pneu2">
+      <option value="">—</option>
+      <option>Nie</option>
+      <option>Áno – druhá sada pneu</option>
+      <option>Áno – kompletné kolesá (s diskami)</option>
+    </select>
+    <label>Stav / hĺbka dezénu</label>
+    <input id="f_pneu_stav" type="text" placeholder="napr. 5 mm / 70 %" autocomplete="off" />
+  </div>
+
+  <!-- MAJITEĽ -->
+  <div class="card">
+    <p class="section-title">Majiteľ</p>
+    <label>Meno / názov</label>
+    <input id="f_majitel" type="text" placeholder="meno a priezvisko / firma" autocomplete="off" />
+    <label>Telefón</label>
+    <input id="f_tel" type="tel" inputmode="tel" placeholder="+421..." autocomplete="off" />
+    <label>Email</label>
+    <input id="f_email" type="email" inputmode="email" placeholder="email@..." autocomplete="off" />
+    <label>Typ subjektu</label>
+    <select id="f_subjekt">
+      <option value="">—</option>
+      <option>Fyzická osoba (FO)</option>
+      <option>FO – podnikateľ (SZČO)</option>
+      <option>Právnická osoba (PO)</option>
+    </select>
+    <label>Platca DPH</label>
+    <select id="f_dph">
+      <option value="">—</option>
+      <option>Áno</option>
+      <option>Nie</option>
+      <option>Neaplikuje sa</option>
+    </select>
+    <label>Financovanie (úver/leasing)</label>
+    <select id="f_fin">
+      <option value="">—</option>
+      <option>Nie – vozidlo je vyplatené</option>
+      <option>Áno – úver</option>
+      <option>Áno – leasing</option>
+      <option>Áno – operatívny leasing</option>
+    </select>
+    <label>Predstava o cene (€)</label>
+    <input id="f_cena" type="text" inputmode="numeric" placeholder="napr. 18 500" autocomplete="off" />
+  </div>
+
+  <!-- POZNÁMKY -->
+  <div class="card">
+    <p class="section-title">Poznámky obhliadky</p>
+    <textarea id="f_pozn" rows="3" placeholder="dojem, výbava nad rámec, čokoľvek doplňujúce..."></textarea>
+  </div>
+
+  <!-- FOTKY -->
+  <div class="card">
+    <p class="section-title">Fotky <span id="photo_count" class="count">(0)</span></p>
+    <div class="photo-buttons">
+      <label for="f_fotky_cam" class="photo-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Odfotiť
+      </label>
+      <label for="f_fotky_lib" class="photo-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Z galérie
+      </label>
+    </div>
+    <input id="f_fotky_cam" type="file" accept="image/*" capture="environment" style="display:none;" />
+    <input id="f_fotky_lib" type="file" accept="image/*" multiple style="display:none;" />
+    <div id="photo_grid" class="photo-grid"></div>
+  </div>
+
+</main>
+
+<!-- FIXED ACTIONS -->
+<div class="actions">
+  <div class="btn-row">
+    <button id="btn_pdf" class="btn btn-primary" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      PDF
+    </button>
+    <button id="btn_share" class="btn btn-share" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      Zdieľať
+    </button>
+  </div>
+  <button id="btn_reset" class="btn btn-secondary" type="button">Vyčistiť formulár</button>
+  <p id="status_msg" class="status"></p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+(function(){
+  const STORAGE_KEY = 'omnia_obhliadka_draft_v1';
+  const photos = [];
+  const grid = document.getElementById('photo_grid');
+  const countEl = document.getElementById('photo_count');
+  const statusEl = document.getElementById('status_msg');
+
+  function setStatus(msg, kind){
+    statusEl.textContent = msg || '';
+    statusEl.className = 'status' + (kind ? ' ' + kind : '');
+  }
+
+  function renderPhotos(){
+    grid.innerHTML = '';
+    countEl.textContent = '(' + photos.length + ')';
+    photos.forEach((p, i) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'photo-item';
+      const img = document.createElement('img');
+      img.src = p.dataUrl;
+      const del = document.createElement('button');
+      del.className = 'photo-del';
+      del.setAttribute('aria-label', 'Odstrániť fotku');
+      del.type = 'button';
+      del.textContent = '×';
+      del.onclick = () => { photos.splice(i,1); renderPhotos(); saveDraft(); };
+      wrap.appendChild(img);
+      wrap.appendChild(del);
+      grid.appendChild(wrap);
+    });
+  }
+
+  function resizeImage(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 1400;
+          let w = img.width, h = img.height;
+          if (w > h && w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; }
+          else if (h >= w && h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0,0,w,h);
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve({ dataUrl: canvas.toDataURL('image/jpeg', 0.72), name: file.name, w, h });
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handleFiles(files){
+    if (!files.length) return;
+    setStatus('Spracúvam ' + files.length + (files.length === 1 ? ' fotku…' : ' fotiek…'));
+    let ok = 0;
+    for (const file of files){
+      try {
+        const r = await resizeImage(file);
+        photos.push(r);
+        renderPhotos();
+        ok++;
+      } catch(err) { console.error(err); }
+    }
+    setStatus('Pridaných ' + ok + (ok === 1 ? ' fotka' : ' fotiek'), 'ok');
+    saveDraft();
+    setTimeout(() => setStatus(''), 2500);
+  }
+
+  // Foto z kamery (jedna naraz – iOS zatiaľ multi-capture nepovoľuje)
+  document.getElementById('f_fotky_cam').addEventListener('change', async (e) => {
+    await handleFiles(Array.from(e.target.files || []));
+    e.target.value = '';
+  });
+
+  // Z galérie – multiple, viacero naraz
+  document.getElementById('f_fotky_lib').addEventListener('change', async (e) => {
+    await handleFiles(Array.from(e.target.files || []));
+    e.target.value = '';
+  });
+
+  function val(id){ return (document.getElementById(id).value || '').trim(); }
+
+  const FIELDS = ['f_znacka','f_model','f_rok','f_evid','f_vin','f_ecv','f_farba','f_motor','f_km','f_palivo','f_prevod','f_pohon','f_servis','f_poist','f_bourane','f_karoseria','f_pneu','f_pneu2','f_pneu_stav','f_majitel','f_tel','f_email','f_subjekt','f_dph','f_fin','f_cena','f_pozn'];
+
+  function saveDraft(){
+    try {
+      const data = {};
+      FIELDS.forEach(id => data[id] = document.getElementById(id).value);
+      data._photos = photos;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch(e){ /* ignore */ }
+  }
+
+  function loadDraft(){
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      FIELDS.forEach(id => {
+        if (data[id] != null) document.getElementById(id).value = data[id];
+      });
+      if (Array.isArray(data._photos)){
+        photos.push(...data._photos);
+        renderPhotos();
+      }
+    } catch(e){ /* ignore */ }
+  }
+
+  FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', saveDraft);
+    el.addEventListener('change', saveDraft);
+  });
+
+  function collectData(){
+    return {
+      znacka: val('f_znacka'), model: val('f_model'),
+      rok: val('f_rok'), evidencia: val('f_evid'),
+      vin: val('f_vin').toUpperCase(), ecv: val('f_ecv').toUpperCase(),
+      farba: val('f_farba'),
+      motor: val('f_motor'), km: val('f_km'),
+      palivo: val('f_palivo'), prevod: val('f_prevod'), pohon: val('f_pohon'),
+      servis: val('f_servis'), poist: val('f_poist'),
+      bourane: val('f_bourane'), karoseria: val('f_karoseria'),
+      pneu: val('f_pneu'), pneu2: val('f_pneu2'), pneuStav: val('f_pneu_stav'),
+      majitel: val('f_majitel'), tel: val('f_tel'), email: val('f_email'),
+      subjekt: val('f_subjekt'), dph: val('f_dph'), fin: val('f_fin'),
+      cena: val('f_cena'), pozn: val('f_pozn')
+    };
+  }
+
+  function fileSlug(d){
+    const parts = [d.znacka, d.model, d.ecv || d.vin].filter(Boolean).join('_');
+    const safe = (parts || 'obhliadka').replace(/[^A-Za-z0-9_-]+/g,'_').slice(0, 50);
+    const dt = new Date();
+    const stamp = dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
+    return 'obhliadka_' + safe + '_' + stamp;
+  }
+
+  function rasterText(text, opts){
+    const { width = 515, fontSize = 11, weight = 'normal', color = '#111', lineHeight = 1.45 } = opts || {};
+    const scale = 2;
+    const cw = width * scale;
+    const measureC = document.createElement('canvas');
+    const mctx = measureC.getContext('2d');
+    mctx.font = weight + ' ' + (fontSize*scale) + 'px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+    const words = String(text).split(/(\s+)/);
+    const lines = [];
+    let line = '';
+    for (const w of words){
+      const test = line + w;
+      if (mctx.measureText(test).width > cw && line){
+        lines.push(line.replace(/\s+$/,''));
+        line = w.replace(/^\s+/,'');
+      } else { line = test; }
+    }
+    if (line.trim()) lines.push(line);
+    const lh = Math.round(fontSize * scale * lineHeight);
+    const ch = Math.max(lh, lines.length * lh);
+    const canvas = document.createElement('canvas');
+    canvas.width = cw; canvas.height = ch;
+    const ctx = canvas.getContext('2d');
+    ctx.font = mctx.font;
+    ctx.fillStyle = color;
+    ctx.textBaseline = 'top';
+    lines.forEach((ln, i) => ctx.fillText(ln, 0, i*lh + Math.round(lh*0.1)));
+    return { dataUrl: canvas.toDataURL('image/png'), heightPt: ch / scale, widthPt: width };
+  }
+
+  async function buildPDF(){
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const M = 40;
+    const contentW = pageW - M*2;
+    let y = M;
+    const d = collectData();
+
+    function ensureSpace(h){
+      if (y + h > pageH - M){ doc.addPage(); y = M; }
+    }
+    function drawText(text, fontSize, weight, color){
+      if (!text) return;
+      const img = rasterText(text, { width: contentW, fontSize, weight: weight||'normal', color: color||'#111' });
+      ensureSpace(img.heightPt);
+      doc.addImage(img.dataUrl, 'PNG', M, y, img.widthPt, img.heightPt);
+      y += img.heightPt;
+    }
+
+    const headerImg = rasterText('OMNIA Motors a.s.', { width: contentW, fontSize: 9, color: '#888' });
+    doc.addImage(headerImg.dataUrl, 'PNG', M, y, headerImg.widthPt, headerImg.heightPt);
+    y += headerImg.heightPt + 4;
+    drawText('Obhliadka vozidla – výkup', 18, 'bold', '#111');
+    y += 6;
+    const dt = new Date();
+    const dtStr = String(dt.getDate()).padStart(2,'0') + '.' + String(dt.getMonth()+1).padStart(2,'0') + '.' + dt.getFullYear() + ' ' + String(dt.getHours()).padStart(2,'0') + ':' + String(dt.getMinutes()).padStart(2,'0');
+    drawText('Dátum obhliadky: ' + dtStr + '   ·   Obhliadku vykonal: Markus Martinkovič', 10, 'normal', '#666');
+    y += 12;
+    doc.setDrawColor(220); doc.setLineWidth(0.5);
+    doc.line(M, y, pageW - M, y);
+    y += 14;
+
+    function section(title){
+      ensureSpace(28);
+      drawText(title, 12, 'bold', '#444');
+      y += 4;
+    }
+    function row(label, value){
+      if (!value) return;
+      const labelImg = rasterText(label, { width: 150, fontSize: 10, color: '#777' });
+      const valueImg = rasterText(value, { width: contentW - 160, fontSize: 11, color: '#111' });
+      const h = Math.max(labelImg.heightPt, valueImg.heightPt) + 4;
+      ensureSpace(h);
+      doc.addImage(labelImg.dataUrl, 'PNG', M, y, labelImg.widthPt, labelImg.heightPt);
+      doc.addImage(valueImg.dataUrl, 'PNG', M + 160, y, valueImg.widthPt, valueImg.heightPt);
+      y += h;
+    }
+
+    section('Identifikácia vozidla');
+    row('Značka / Model', [d.znacka, d.model].filter(Boolean).join(' '));
+    row('Rok výroby', d.rok);
+    row('1. evidencia', d.evidencia);
+    row('VIN', d.vin);
+    row('EČV (ŠPZ)', d.ecv);
+    row('Farba', d.farba);
+    y += 8;
+
+    section('Technika');
+    row('Motor', d.motor);
+    row('Nájazd (km)', d.km ? Number(d.km).toLocaleString('sk-SK') + ' km' : '');
+    row('Palivo', d.palivo);
+    row('Prevodovka', d.prevod);
+    row('Pohon', d.pohon);
+    y += 8;
+
+    section('Stav a história');
+    row('Servisná história', d.servis);
+    row('Poistné udalosti', d.poist);
+    row('Bourané / havarované', d.bourane);
+    row('Stav karosérie', d.karoseria);
+    y += 8;
+
+    section('Pneumatiky');
+    row('Aktuálne nasadené', d.pneu);
+    row('Druhá sada / kolesá', d.pneu2);
+    row('Stav / hĺbka dezénu', d.pneuStav);
+    y += 8;
+
+    section('Majiteľ a obchodné podmienky');
+    row('Meno / názov', d.majitel);
+    row('Telefón', d.tel);
+    row('Email', d.email);
+    row('Typ subjektu', d.subjekt);
+    row('Platca DPH', d.dph);
+    row('Financovanie', d.fin);
+    row('Predstava o cene', d.cena ? d.cena + ' €' : '');
+    y += 8;
+
+    if (d.pozn){
+      section('Poznámky obhliadky');
+      drawText(d.pozn, 11, 'normal', '#222');
+      y += 8;
+    }
+
+    if (photos.length){
+      doc.addPage(); y = M;
+      drawText('Fotodokumentácia (' + photos.length + ')', 14, 'bold', '#111');
+      y += 10;
+      const gap = 10;
+      const colW = (contentW - gap) / 2;
+      for (let i = 0; i < photos.length; i += 2){
+        const slots = [photos[i], photos[i+1]].filter(Boolean);
+        const heights = slots.map(p => {
+          const ar = p.h / p.w;
+          return Math.min(colW * ar, 260);
+        });
+        const rowH = Math.max(...heights);
+        ensureSpace(rowH + 8);
+        slots.forEach((p, j) => {
+          const x = M + j * (colW + gap);
+          const ar = p.h / p.w;
+          const h = Math.min(colW * ar, 260);
+          const w = h / ar;
+          const xCentered = x + (colW - w) / 2;
+          doc.addImage(p.dataUrl, 'JPEG', xCentered, y, w, h);
+        });
+        y += rowH + 8;
+      }
+    }
+
+    const total = doc.internal.getNumberOfPages();
+    for (let p = 1; p <= total; p++){
+      doc.setPage(p);
+      const f = rasterText('OMNIA Motors a.s.  ·  Markus Martinkovič  ·  +421 907 110 050  ·  mmartinkovic@omniamotors.sk          Strana ' + p + ' / ' + total, { width: contentW, fontSize: 8, color: '#999' });
+      doc.addImage(f.dataUrl, 'PNG', M, pageH - M + 10, f.widthPt, f.heightPt);
+    }
+    return doc;
+  }
+
+  async function generatePDF(){
+    const d = collectData();
+    if (!d.znacka && !d.model && !d.vin && !d.ecv){
+      setStatus('Vyplň aspoň značku alebo VIN/EČV', 'err');
+      return null;
+    }
+    setStatus('Generujem PDF…');
+    try {
+      const doc = await buildPDF();
+      const name = fileSlug(d) + '.pdf';
+      return { doc, name };
+    } catch(err){
+      console.error(err);
+      setStatus('Chyba pri generovaní PDF', 'err');
+      return null;
+    }
+  }
+
+  document.getElementById('btn_pdf').onclick = async () => {
+    const res = await generatePDF();
+    if (!res) return;
+    res.doc.save(res.name);
+    setStatus('PDF stiahnuté ✓', 'ok');
+  };
+
+  document.getElementById('btn_share').onclick = async () => {
+    const res = await generatePDF();
+    if (!res) return;
+    const blob = res.doc.output('blob');
+    const file = new File([blob], res.name, { type: 'application/pdf' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })){
+      try {
+        const d = collectData();
+        await navigator.share({
+          files: [file],
+          title: 'Obhliadka vozidla',
+          text: 'Obhliadka vozidla – ' + ((d.znacka + ' ' + d.model).trim() || 'vozidlo')
+        });
+        setStatus('Zdieľanie otvorené ✓', 'ok');
+      } catch(err){
+        if (err.name !== 'AbortError'){
+          setStatus('Zdieľanie zlyhalo – PDF stiahnuté', 'err');
+          res.doc.save(res.name);
+        }
+      }
+    } else {
+      res.doc.save(res.name);
+      setStatus('Zdieľanie nepodporované – PDF stiahnuté', 'err');
+    }
+  };
+
+  document.getElementById('btn_reset').onclick = () => {
+    if (!confirm('Vyčistiť celý formulár vrátane fotiek?')) return;
+    FIELDS.forEach(id => { document.getElementById(id).value = ''; });
+    photos.length = 0;
+    renderPhotos();
+    localStorage.removeItem(STORAGE_KEY);
+    setStatus('Formulár vyčistený', 'ok');
+    setTimeout(() => setStatus(''), 2000);
+  };
+
+  loadDraft();
+})();
+</script>
+</body>
+</html>
